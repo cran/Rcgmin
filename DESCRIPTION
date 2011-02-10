@@ -2,8 +2,8 @@ Package: Rcgmin
 Type: Package
 Title: Conjugate gradient minimization of nonlinear functions with box
         constraints
-Version: 0.82
-Date: 2010-11-09
+Version: 2011-2.10
+Date: 2011-2-10
 Author: John C. Nash
 Maintainer: John C. Nash <nashjc@uottawa.ca>
 Description: Conjugate gradient minimization of nonlinear functions
@@ -13,6 +13,6 @@ License: GPL (>= 2)
 LazyLoad: no
 Repository: CRAN
 Repository/R-Forge/Project: optimizer
-Repository/R-Forge/Revision: 382
-Date/Publication: 2010-11-15 20:22:52
-Packaged: 2010-11-09 21:43:35 UTC; rforge
+Repository/R-Forge/Revision: 407
+Date/Publication: 2011-02-23 19:37:46
+Packaged: 2011-02-12 21:40:00 UTC; rforge
