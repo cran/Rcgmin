@@ -99,17 +99,16 @@ Rcgminb <- function(par, fn, gr, lower, upper, bdmsk = NULL, control = list(), .
     #############################################
     # gr MUST be provided
     if (grNULL) {
+       require(numDeriv)
        if (control$dowarn) 
-          warning("A NULL gradient function is being replaced with fwd diff for Rcgmin")
-       mygr  <-function(par, ...) {
-          df <- rep(NA,length(par))
-    	  for (i in 1:length(par)) {
-    	    dx <- par
-    	    dx[i] <- dx[i] + eps 
-    	    df[i] <- (fn(dx, ...) - f)/eps
-    	  }
-    	  df
+          warning("A NULL gradient function is being replaced numDeriv 'grad()'for Rcgmin")
+       if (ctrl$trace > 1) {
+           cat("Using following function in numDeriv grad()\n")
+           print(fn)
        }
+       mygr<-function(prm, func=fn, ...){
+           gv<-grad(func=func, x=prm, ...)
+       }    # gr MUST be provided
   #############################################
     } else { mygr <- gr }
   ############# end test gr ####################
@@ -127,9 +126,7 @@ Rcgminb <- function(par, fn, gr, lower, upper, bdmsk = NULL, control = list(), .
     acctol <- 1e-04  # acceptable point tolerance
     reltest <- 100  # relative equality test
     ceps <- .Machine$double.eps * reltest
-    setstep <- 1.75  # step increase factor
     accpoint <- as.logical(FALSE)  # so far do not have an acceptable point
-    fail <- as.logical(FALSE)  # Method hasn't yet failed on us!
     cyclimit <- min(2.5 * n, 10 + sqrt(n))  #!! upper bound on when we restart CG cycle
     fargs <- list(...)  # function arguments
     if (trace > 2) {
@@ -262,13 +259,12 @@ Rcgminb <- function(par, fn, gr, lower, upper, bdmsk = NULL, control = list(), .
         print(bvec)
     # Start the minimization process
     keepgoing <- TRUE
-    notconv <- TRUE
     msg <- "not finished"  # in case we exit somehow
     oldstep <- 0.8  #!! 2/3 #!!?? WHY?
     ####################################################################
     fdiff <- NA  # initially no decrease
     cycle <- 0  # !! cycle loop counter
-    while (keepgoing && notconv) {
+    while (keepgoing) {
         # main loop -- must remember to break out of it!!
         t <- as.vector(rep(0, n))  # zero step vector
         c <- t  # zero 'last' gradient
@@ -550,7 +546,6 @@ Rcgminb <- function(par, fn, gr, lower, upper, bdmsk = NULL, control = list(), .
                     if (trace > 0) 
                       cat("\n", msg, "\n")
                     keekpgoing <- FALSE
-                    notconv <- FALSE  # mark as converged
                     break  #!!
                   }
                 }  # end else
@@ -595,7 +590,6 @@ Rcgminb <- function(par, fn, gr, lower, upper, bdmsk = NULL, control = list(), .
         if (oldstep < acctol) {
             oldstep <- acctol
         }
-        #!!  oldstep = setstep * newstep # change to newstep for
         #   steplength
         if (oldstep > 1) {
             oldstep <- 1
