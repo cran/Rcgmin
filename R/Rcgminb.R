@@ -99,9 +99,9 @@ Rcgminb <- function(par, fn, gr, lower, upper, bdmsk = NULL, control = list(), .
     #############################################
     # gr MUST be provided
     if (grNULL) {
-       require(numDeriv)
+    ##   require(numDeriv) # In DESCRIPTION and NAMESPACE
        if (control$dowarn) 
-          warning("A NULL gradient function is being replaced numDeriv 'grad()'for Rcgmin")
+          warning("A NULL gradient function is being replaced by numDeriv 'grad()'for Rcgmin")
        if (ctrl$trace > 1) {
            cat("Using following function in numDeriv grad()\n")
            print(fn)
