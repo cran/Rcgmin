@@ -283,6 +283,9 @@ Rcgminu <- function(par, fn, gr, control = list(), ...) {
                     if (changed) {
                       f <- fn(bvec, ...)
                       ifn <- ifn + 1
+                        
+                      if (is.nan(f) || is.na(f))
+                          f <- Inf
                     }
                     if (trace > 2) 
                       cat("fmin, f1, f: ", fmin, f1, f, "\n")
