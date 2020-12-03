@@ -500,6 +500,11 @@ Rcgminb <- function(par, fn, gr, lower, upper, bdmsk = NULL, control = list(), .
                     if (changed) {
                       f <- fn(bvec, ...)
                       ifn <- ifn + 1
+                        
+                      if (is.na(f) || (!is.finite(f))) {
+                        warning("Rcgmin - undefined function")
+                        f <- .Machine$double.xmax
+                      }
                     }
                     if (trace > 2) 
                       cat("fmin, f1, f: ", fmin, f1, f, "\n")
