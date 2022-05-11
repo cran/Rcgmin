@@ -50,7 +50,7 @@ Rcgminu <- function(par, fn, gr, control = list(), ...) {
     #  Author:  John C Nash
     #  Date:  April 2, 2009; revised July 28, 2009
     #################################################################
-    # control defaults -- idea from spg
+    # control defaults -- idea from spg. ?? Should use ctrldefault()
     ctrl <- list(maxit = 500, maximize = FALSE, trace = 0, eps = 1e-07, 
         dowarn = TRUE, tol=0)
     namc <- names(control)
@@ -79,20 +79,16 @@ Rcgminu <- function(par, fn, gr, control = list(), ...) {
     }
     #############################################
     # gr MUST be provided
-    if (grNULL) {
-    ##   require(numDeriv) # in NAMESPACE
-       if (control$dowarn) 
-          warning("A NULL gradient function is being replaced by numDeriv 'grad()'for Rcgmin")
-       if (ctrl$trace > 1) {
-           cat("Using following function in numDeriv grad()\n")
-           print(fn)
+    if (is.null(gr)) {  # if gr function is not provided STOP (Rvmmin has definition)
+       stop("A gradient calculation (analytic or numerical) MUST be provided for Rcgmin") 
+    }
+    if ( is.character(gr) ) {
+       # Convert string to function call, assuming it is a numerical gradient function
+       mygr<-function(par=par, userfn=fn, ...){
+           do.call(gr, list(par, userfn, ...))
        }
-       mygr<-function(prm, func=fn, ...){
-           gv<-grad(func=func, x=prm, ...)
-       }
-  #############################################
-    } else { mygr <- gr }
-  ############# end test gr ####################
+    } else { mygr<-gr }
+   ############# end test gr ####################
   ## Set working parameters (See CNM Alg 22)
     if (trace > 0) {
         cat("Rcgminu -- J C Nash 2009 - unconstrained version CG min\n")
@@ -105,12 +101,12 @@ Rcgminu <- function(par, fn, gr, control = list(), ...) {
     ifn <- 1  # count function evaluations (we always make 1 try below)
     stepredn <- 0.15  # Step reduction in line search
     acctol <- 1e-04  # acceptable point tolerance
-    reltest <- 100  # relative equality test
+    offset <- 100  # relative equality test
     accpoint <- as.logical(FALSE)  # so far do not have an acceptable point
     cyclimit <- min(2.5 * n, 10 + sqrt(n))  #!! upper bound on when we restart CG cycle
     #!! getting rid of limit makes it work on negstart BUT inefficient
     # This does not appear to be in Y H Dai & Y Yuan, Annals of
-    #   Operations Research 103, 33–47, 2001 aor01.pdf
+    #   Operations Research 103, 33--47, 2001
     # in Alg 22 pascal, we can set this as user. Do we wish to allow that?
     ##    tol <- n * (n * .Machine$double.eps)  # # for gradient test.  
     ## Note -- integer overflow if n*n*d.eps
@@ -129,7 +125,7 @@ Rcgminu <- function(par, fn, gr, control = list(), ...) {
     if (trace > 0) {
         cat("Initial function value=", f, "\n")
     }
-    if (class(f) == "try-error") {
+    if (inherits(f, "try-error") ) {
         msg <- "Initial point is infeasible."
         if (trace > 0) 
             cat(msg, "\n")
@@ -196,7 +192,7 @@ Rcgminu <- function(par, fn, gr, control = list(), ...) {
             }
             c <- g  # save last gradient
             g3 <- 1  # !! Default to 1 to ensure it is defined -- t==0 on first cycle
-            if (gradsqr > tol * (abs(fmin) + reltest)) {
+            if (gradsqr > tol * (abs(fmin) + offset)) {
                 if (g2 > 0) {
                   betaDY <- gradsqr/g2
                   betaHS <- g1/g2
@@ -245,7 +241,7 @@ Rcgminu <- function(par, fn, gr, control = list(), ...) {
                 changed <- TRUE  # Need to set so loop will start
                 while ((f >= fmin) && changed) {
                   bvec <- par + steplength * t
-                  changed <- (!identical((bvec + reltest), (par + reltest)))
+                  changed <- (!identical((bvec + offset), (par + offset)))
                   if (changed) {
                     # compute newstep, if possible
                     f <- fn(bvec, ...)  # Because we need the value for linesearch, don't use try()
@@ -253,7 +249,7 @@ Rcgminu <- function(par, fn, gr, control = list(), ...) {
                     #   unlikely.
                     ifn <- ifn + 1
                     if (is.na(f) || (!is.finite(f))) {
-                      warning("Rcgmin - undefined function")
+                      warning("Rcgminu - undefined function")
                       f <- .Machine$double.xmax
                     }
                     if (f < fmin) {
@@ -278,8 +274,8 @@ Rcgminu <- function(par, fn, gr, control = list(), ...) {
                       newstep = -(gradproj * steplength * steplength/newstep)
                     }
                     bvec <- par + newstep * t
-                    changed <- (!identical((bvec + reltest), 
-                      (par + reltest)))
+                    changed <- (!identical((bvec + offset), 
+                      (par + offset)))
                     if (changed) {
                       f <- fn(bvec, ...)
                       ifn <- ifn + 1

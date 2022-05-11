@@ -1,8 +1,6 @@
-import(
-  "numDeriv"
-)
 export(
   "Rcgmin",
   "Rcgminu",
   "Rcgminb"
 )
+import(optextras)
